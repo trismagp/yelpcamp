@@ -17,19 +17,20 @@ db.once("open", () => {
     console.log("Database connected");
 });
 
+const sample = array => array[Math.floor(Math.random() * array.length)];
 
 const seedDB = async () => {
     await Campground.deleteMany({});
     for (let i = 0; i < 50; i++) {
         const random1000 = Math.floor(Math.random() * 1000);
-        const random18a = Math.floor(Math.random() * 18);
-        const random18b = Math.floor(Math.random() * 18);
         const camp = new Campground({
-            title: `${descriptors[random18a]} ${places[random18b]}`,
+            title: `${sample(descriptors)} ${sample(places)}`,
             location: `${cities[random1000].city}, ${cities[random1000].state}`
         });
         await camp.save();
     }
 }
 
-seedDB();
+seedDB().then(() => {
+    mongoose.connection.close();
+});
