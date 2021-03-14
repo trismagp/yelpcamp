@@ -23,6 +23,11 @@ app.get('/', (req, res) => {
     res.render('home')
 })
 
+app.get('/campgrounds', async (req, res) => {
+    const campgrounds = await Campground.find({});
+    res.render('campgrounds/index', {campgrounds});
+})
+
 app.get('/makecampground', async (req, res) => {
     const camp = new Campground({title: "camp01" ,description: "very fund"});
     await camp.save();
