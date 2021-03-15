@@ -59,6 +59,11 @@ app.put('/campgrounds/:id', async (req, res) => {
     res.redirect(`/campgrounds/${camp._id}`);
 })
 
+app.delete('/campgrounds/:id', async (req, res) => {
+    await Campground.findOneAndDelete(req.params.id);
+    res.redirect('/campgrounds');
+})
+
 app.get('/makecampground', async (req, res) => {
     const camp = new Campground({title: "camp01" ,description: "very fund"});
     await camp.save();
