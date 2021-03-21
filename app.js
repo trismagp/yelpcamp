@@ -10,6 +10,7 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp',{
     useCreateIndex: true,
     useUnifiedTopology: true
 });
+mongoose.set('useFindAndModify', false);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error;"));
