@@ -3,7 +3,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const engine = require('ejs-mate');
 const methodOverride =require('method-override');
-const Joi =require('joi');
+const { campgroundJoiSchema } = require('./joiSchemas.js')
 const ExpressError = require('./utils/ExpressError');
 const catchAsync = require('./utils/catchAsync');
 const Campground = require('./models/campground');
@@ -14,6 +14,16 @@ mongoose.connect('mongodb://localhost:27017/yelp-camp',{
     useUnifiedTopology: true
 });
 mongoose.set('useFindAndModify', false);
+
+const validateCampgroundJoiSchema = (req, res, next) => {
+    const {error} = campgroundJoiSchema.validate(req.body);
+    if(error){
+        const msg = error.details.map(el=>el.message).join(',')
+        throw new ExpressError(msg, 400);
+    }else{
+        next();
+    };
+};
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error;"));
@@ -53,23 +63,9 @@ app.get('/campgrounds/new', (req, res) => {
 //     }
 // })
 
-app.post('/campgrounds', catchAsync(async (req, res, next) => {
+app.post('/campgrounds', validateCampgroundJoiSchema, catchAsync(async (req, res, next) => {
     // if(!req.body.campground) throw new ExpressError('Invalid campground data', 400);
 
-    const campgroundSchema = Joi.object({
-        campground: Joi.object({
-            title: Joi.string().required(),
-            price: Joi.number().required().min(0),
-            image: Joi.string().required(),
-            location: Joi.string().required(),
-            description: Joi.string().required()
-        }).required()
-    })
-    const {error} = campgroundSchema.validate(req.body);
-    if(error){
-        const msg = error.details.map(el=>el.message).join(',')
-        throw new ExpressError(msg, 400);
-    }
     const camp = new Campground(req.body.campground);
     await camp.save();
     res.redirect(`/campgrounds/${camp._id}`)
@@ -85,7 +81,7 @@ app.get('/campgrounds/:id/edit', catchAsync(async (req, res) => {
     res.render('campgrounds/edit', {campground});
 }))
 
-app.put('/campgrounds/:id', catchAsync(async (req, res) => {
+app.put('/campgrounds/:id', validateCampgroundJoiSchema, catchAsync(async (req, res) => {
     const { id } = req.params;
     const { campground } = req.body;
     const camp = await Campground.findByIdAndUpdate(id, {...campground});
